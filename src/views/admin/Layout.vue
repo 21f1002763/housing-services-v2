@@ -3,9 +3,11 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="icon-container">
+        <router-link to="/admin/profile">
         <div class="icon d-flex align-items-center justify-content-center">
           <span class="fa fa-user"></span>
         </div>
+        </router-link>
         <h2>Admin Panel</h2>
       </div>
 
@@ -14,7 +16,6 @@
           <li><router-link to="/admin/dashboard" active-class="active-link">Dashboard</router-link></li>
           <li><router-link to="/admin/search" active-class="active-link">Search</router-link></li>
           <li><router-link to="/admin/summary" active-class="active-link">Summary</router-link></li>
-          <li><router-link to="/admin/profile" active-class="active-link">Profile</router-link></li>
         </ul>
       </nav>
     </aside>

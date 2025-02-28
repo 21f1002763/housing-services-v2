@@ -30,6 +30,7 @@ api.add_resource(UserResource, '/user')
 api.add_resource(ProfessionalResource, '/professional')
 api.add_resource(ServiceResource, '/service')
 api.add_resource(ServicePackageResource, '/service-package')
+api.add_resource(CustomerResource, '/customer')
 
 #add dummy data
 def insert_dummy_data():

@@ -138,7 +138,7 @@ class CustomerResource(Resource):
     @role_required('admin', 'customer')
     def get(self):
         customers = Customer.query.all()
-        customers_response = jsonify([customer.to_dict() for customer in customers])
+        customers_response = [customer.to_dict(True) for customer in customers]
         return customers_response, 200
 
     @role_required('admin')

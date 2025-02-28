@@ -73,7 +73,7 @@ class Customer(BaseModel):
     customer_id = db.Column(db.Integer, primary_key = True, autoincrement = True, nullable = False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     status = db.Column(Enum('blocked', 'unblocked',  name='customer_status_enum'), nullable=False, default='requested')
-    customers = db.relationship("User", backref = "customer")
+    user = db.relationship("User", backref = "customer")
 
 class Service(BaseModel):
     __tablename__ = 'service'
