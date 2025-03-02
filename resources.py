@@ -113,7 +113,7 @@ class LoginResource(Resource):
         import json
         access_token = create_access_token(identity=json.dumps({"user_id": user.user_id, "role_name": role.role_name}))
 
-        return {"access_token": access_token, "role": role.role_name}, 200
+        return {"access_token": access_token, "user_id": user.user_id, "role": role.role_name}, 200
 
 #  -----------------See if the block is useful-----------------
 # Role-Based Resource
@@ -455,7 +455,7 @@ class ServiceRequestResource(Resource):
     @role_required('admin', 'customer', 'professional')
     def get(self):
         requests = Service_Request.query.all()
-        requests_response = jsonify([request.to_dict() for request in requests])
+        requests_response = [request.to_dict(True) for request in requests]
         return requests_response, 200
     
     @role_required('customer')
@@ -536,7 +536,7 @@ class RejectRequestResource(Resource):
 class CloseRequestResource(Resource):
     method_decorators = [jwt_required()]
 
-    @role_required('professional')
+    @role_required('professional', 'customer')
     def put(self, request_id):
         request = Service_Request.query.get(request_id)
         if request:
@@ -619,7 +619,7 @@ class UnblockCustomerResource(Resource):
     def put(self, customer_id):
         customer = Customer.query.get(customer_id)
         if customer:
-            customer.status = 'unblocked'
+            customer.status = 'active'
             db.session.commit()
             return {"message": "Customer unblocked successfully"}, 200
         else:

@@ -1,10 +1,47 @@
 <template>
   <div>
     <h1>Admin Dashboard</h1>
-    <h3 class="mt-5">Service Professionals</h3>
-    <Table :columns="professionalColumns" :data="professionals"/>
-    <h3 class="mt-5">Customers</h3>
-    <Table :columns="customerColumns" :data="customers"/>
+    <h3 class="mt-3">Service Professionals</h3>
+    <Table :columns="professionalColumns" :data="professionals">
+      <template v-slot:actions="{ row }">
+        <!-- If status is "requested", show Accept and Reject buttons -->
+        <template v-if="row.status === 'requested'">
+          <button class="btn btn-success btn-sm" @click="acceptProfessional(row)">Accept</button>
+          <button class="btn btn-danger btn-sm" @click="rejectProfessional(row)">Reject</button>
+        </template>
+
+        <!-- If status is "accepted", show Block button -->
+        <template v-else-if="row.status === 'accepted'">
+          <button class="btn btn-warning btn-sm" @click="blockProfessional(row)">Block</button>
+        </template>
+
+        <!-- If status is "blocked", show Unblock button -->
+        <template v-else-if="row.status === 'blocked'">
+          <button class="btn btn-secondary btn-sm" @click="unblockProfessional(row)">Unblock</button>
+        </template>
+      </template>
+    </Table>
+  </div>
+  <div>
+    <h3 class="mt-3">Customers</h3>
+    <Table :columns="customerColumns" :data="customers">
+      <template v-slot:actions="{ row }">
+
+        <!-- If status is "accepted", show Block button -->
+        <template v-if="row.status === 'active'">
+          <button class="btn btn-warning btn-sm" @click="blockCustomer(row)">Block</button>
+        </template>
+
+        <!-- If status is "blocked", show Unblock button -->
+        <template v-else-if="row.status === 'blocked'">
+          <button class="btn btn-secondary btn-sm" @click="unblockCustomer(row)">Unblock</button>
+        </template>
+      </template>
+    </Table>
+  </div>
+  <div>
+    <h3 class="mt-3">Service Requests</h3>
+    <Table :columns="serviceRequestColumns" :data="serviceRequests"/>
   </div>
 </template>
 
@@ -18,6 +55,7 @@ export default {
     return {
       professionals: [],
       customers: [],
+      serviceRequests: [],
       loading: false,
       error: null,
       professionalColumns: [
@@ -30,11 +68,21 @@ export default {
         { key: "actions", label: "Actions" }
       ],
       customerColumns: [
-      { key: "customer_id", label: "ID" },
+        { key: "customer_id", label: "ID" },
         { key: "name", label: "Name" },
         { key: "email", label: "Email" },
         { key: "status", label: "Status" },
         { key: "actions", label: "Actions" }
+      ],
+      serviceRequestColumns: [
+        { key: "request_id", label: "Request ID" },
+        { key: "package_name", label: "Package Name" },
+        { key: "customer_name", label: "Customer Name" },
+        { key: "professional_name", label: "Professional Name" },
+        { key: "request_date", label: "Request Date" },
+        { key: "complete_date", label: "Complete Date" },
+        { key: "service_status", label: "Service Status" },
+        { key: "service_rating", label: "Service Rating" }
       ]
     };
   },
@@ -82,11 +130,90 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async fetchServiceRequests() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get("/service-request");
+        console.log("Fetched Service Request Data:", response.data); // Debugging step
+
+        this.serviceRequests = response.data.map(serviceRequest => ({
+          request_id : serviceRequest.request_id,
+package_name : serviceRequest.packages.package_name,
+customer_name : this.customers.filter(customer => customer.customer_id === serviceRequest.customer_id)[0].name,
+professional_name : this.professionals.filter(professional => professional.professional_id === serviceRequest.professional_id)[0].name,
+request_date : serviceRequest.request_date,
+complete_date : serviceRequest.complete_date,
+service_status : serviceRequest.service_status,
+service_rating : serviceRequest.service_rating,
+        }));
+      } catch (err) {
+        this.error = "Failed to load service requests";
+        console.error(err);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async acceptProfessional(row) {
+      try {
+        await api.put(`/professional/${row.professional_id}/accept`);
+        row.status = "accepted"; // Update UI
+        console.log("Professional accepted successfully");
+      } catch (error) {
+        console.error("Failed to accept professional", error);
+      }
+    },
+    async rejectProfessional(row) {
+      try {
+        await api.put(`/professional/${row.professional_id}/reject`);
+        row.status = "rejected"; // Update UI
+        console.log("Professional rejected successfully");
+      } catch (error) {
+        console.error("Failed to reject professional", error);
+      }
+    },
+    async blockProfessional(row) {
+      try {
+        await api.put(`/professional/${row.professional_id}/block`);
+        row.status = "blocked"; // Update UI
+        console.log("Professional blocked successfully");
+      } catch (error) {
+        console.error("Failed to block professional", error);
+      }
+    },
+    async unblockProfessional(row) {
+      try {
+        await api.put(`/professional/${row.professional_id}/unblock`);
+        row.status = "accepted"; // Update UI
+        console.log("Professional unblocked successfully");
+      } catch (error) {
+        console.error("Failed to unblock professional", error);
+      }
+    },
+    async blockCustomer(row) {
+      try {
+        await api.put(`/customer/${row.customer_id}/block`);
+        row.status = "blocked"; // Update UI
+        console.log("Customer blocked successfully");
+      } catch (error) {
+        console.error("Failed to block customer", error);
+      }
+    },
+    async unblockCustomer(row) {
+      try {
+        await api.put(`/customer/${row.customer_id}/unblock`);
+        row.status = "active"; // Update UI
+        console.log("Customer unblocked successfully");
+      } catch (error) {
+        console.error("Failed to unblock customer", error);
+      }
     }
   },
   mounted() {
     this.fetchProfessionals();
     this.fetchCustomers();
+    this.fetchServiceRequests();
   }
 };
 </script>

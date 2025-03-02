@@ -64,12 +64,11 @@ export default {
 
         // Store the token
         const token = response.data.access_token;
-        localStorage.setItem('token', token);
 
         // Set token in headers for future requests
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-        store.login({ role: response.data.role, token: response.data.access_token });
+        store.login({ role: response.data.role, token: token, userId: response.data.user_id });
         router.push(`/${response.data.role}/dashboard`);
       } catch (error) {
         alert('Invalid credentials');

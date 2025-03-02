@@ -12,7 +12,7 @@ import os
 
 # Initialize Flask app and extensions
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:8080", "supports_credentials": True}})
+CORS(app, resources={r"/*": {"origins": "*", "supports_credentials": True}})
 app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///HousingServiceDB.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -24,13 +24,21 @@ jwt = JWTManager(app)
 api = Api(app)
 
 # Add resources
-api.add_resource(LoginResource, '/login')
-api.add_resource(RoleBasedResource, '/role-based/<string:role_name>')
-api.add_resource(UserResource, '/user')
-api.add_resource(ProfessionalResource, '/professional')
-api.add_resource(ServiceResource, '/service')
-api.add_resource(ServicePackageResource, '/service-package')
-api.add_resource(CustomerResource, '/customer')
+api.add_resource(LoginResource, '/api/login')
+api.add_resource(RoleBasedResource, '/api/role-based/<string:role_name>')
+api.add_resource(UserResource, '/api/user')
+api.add_resource(ProfessionalResource, '/api/professional')
+api.add_resource(ServiceResource, '/api/service')
+api.add_resource(ServicePackageResource, '/api/service-package')
+api.add_resource(CustomerResource, '/api/customer')
+api.add_resource(ServiceRequestResource, '/api/service-request')
+api.add_resource(AcceptProfessionalResource, "/api/professional/<int:professional_id>/accept")
+api.add_resource(RejectProfessionalResource, "/api/professional/<int:professional_id>/reject")
+api.add_resource(BlockProfessionalResource, "/api/professional/<int:professional_id>/block")
+api.add_resource(UnblockProfessionalResource, "/api/professional/<int:professional_id>/unblock")
+api.add_resource(BlockCustomerResource, "/api/customer/<int:customer_id>/block")
+api.add_resource(UnblockCustomerResource, "/api/customer/<int:customer_id>/unblock")
+
 
 #add dummy data
 def insert_dummy_data():
@@ -47,8 +55,13 @@ def insert_dummy_data():
                      email='admin@example.com', name='Admin User', mobile_no=1234567890)
         
         # Insert Customer
-        customer = User(role_id=customer_role.role_id, username='john_doe', password=generate_password_hash('custPassword', method='pbkdf2:sha256', salt_length=16),
-                        email='john.doe@example.com', name='John Doe', mobile_no=9876543210)
+        customers = [
+            User(role_id=customer_role.role_id, username='john_doe', password=generate_password_hash('custPassword', method='pbkdf2:sha256', salt_length=16),
+                        email='john.doe@example.com', name='John Doe', mobile_no=9876543210),
+            User(role_id=customer_role.role_id, username='robert_greens', password=generate_password_hash('custPassword', method='pbkdf2:sha256', salt_length=16),
+                        email='robert.greens@example.com', name='Robert Greens', mobile_no=9876543210)
+        ]
+        
         
         # Insert Service Professionals
         professionals = [
@@ -58,7 +71,7 @@ def insert_dummy_data():
                  email='bob.jones@example.com', name='Bob Jones', mobile_no=4445556666)
         ]
         
-        db.session.add_all([admin, customer] + professionals)
+        db.session.add_all([admin] + customers + professionals)
         db.session.commit()
         
         # Insert Services
@@ -78,8 +91,12 @@ def insert_dummy_data():
         db.session.commit()
         
         # Insert Customer Entry
-        customer_entry = Customer(user_id=customer.user_id, status='unblocked')
-        db.session.add(customer_entry)
+        # Assign Service Professionals
+        customer_data = [
+            Customer(user_id=customers[0].user_id, status='active'),
+            Customer(user_id=customers[1].user_id, status='blocked'),
+        ]
+        db.session.add_all(customer_data)
         db.session.commit()
         
         # Insert Service Packages
@@ -94,7 +111,7 @@ def insert_dummy_data():
         
         # Insert Service Requests
         request = Service_Request(package_id=packages[0].package_id, 
-                                  customer_id=customer_entry.customer_id, 
+                                  customer_id=customer_data[0].customer_id, 
                                   professional_id=service_professionals[0].professional_id,
                                   request_date=date.today(), 
                                   service_status='requested')

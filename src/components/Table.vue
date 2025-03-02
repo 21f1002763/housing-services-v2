@@ -11,7 +11,10 @@
       <tbody>
         <tr v-for="row in data" :key="row.id">
           <td v-for="col in columns" :key="col.key">
-            {{ row[col.key] }}
+            <!-- Check if there's a custom slot for this column -->
+            <slot :name="col.key" :row="row">
+              {{ row[col.key] }} <!-- Default behavior if no slot is provided -->
+            </slot>
           </td>
         </tr>
       </tbody>
@@ -31,7 +34,7 @@ export default {
 <style scoped>
 /* Ensure equal column width */
 table {
-  table-layout: fixed; /* Fixes column width */
+  table-layout:inherit; /* Fixes column width */
   width: 100%;
 }
 th{
