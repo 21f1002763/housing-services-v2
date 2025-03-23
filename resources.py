@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from models import *
 from utils.decorators import *
 
+
 # Login parser
 login_parser = reqparse.RequestParser()
 login_parser.add_argument('username', type=str, required=True, help="Username is required")
@@ -91,6 +92,12 @@ class UserResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"message": "An error occurred while creating the user", "error": str(e)}, 500
+        
+    @role_required('admin', 'customer')
+    def get(self):
+        users = User.query.all()
+        users_response = [user.to_dict(True) for user in users]
+        return users_response, 200
         
 # Login Resource
 class LoginResource(Resource): 
@@ -336,10 +343,17 @@ class ServiceResource(Resource):
     method_decorators = [jwt_required()] 
 
     @role_required('admin', 'customer')
-    def get(self):
-        services = Service.query.all()
-        services_response = jsonify([service.to_dict() for service in services])
-        return services_response, 200
+    def get(self, id=None):
+        if id is None:
+            # Fetch all services
+            services = Service.query.all()
+            return [service.to_dict(False) for service in services], 200
+        else:
+            # Fetch a single service by ID
+            service = Service.query.get(id)
+            if not service:
+                return {"message": "Service not found"}, 404
+            return service.to_dict(False), 200
 
     @role_required('admin')
     def post(self):
@@ -624,3 +638,11 @@ class UnblockCustomerResource(Resource):
             return {"message": "Customer unblocked successfully"}, 200
         else:
             return {"message": "Customer not found"}, 404
+        
+# class ExportReportResource(Resource):
+#     method_decorators = [jwt_required()]
+#     def post(self):
+#         from tasks import export_closed_service_requests
+#         admin = User.query.filter_by(role_id=1).first()
+#         export_closed_service_requests.delay(admin.email)  # Runs in the background
+#         return jsonify({"message": "CSV export job started. You'll receive an email once done."}), 200

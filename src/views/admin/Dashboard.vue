@@ -22,6 +22,7 @@
       </template>
     </Table>
   </div>
+
   <div>
     <h3 class="mt-3">Customers</h3>
     <Table :columns="customerColumns" :data="customers">
@@ -39,23 +40,39 @@
       </template>
     </Table>
   </div>
+
   <div>
     <h3 class="mt-3">Service Requests</h3>
-    <Table :columns="serviceRequestColumns" :data="serviceRequests"/>
+    <Table :columns="serviceRequestColumns" :data="serviceRequests" />
+  </div>
+
+  <div class="container">
+    <h2 class="title">Our Services</h2>
+
+    <!-- Services Grid -->
+    <div v-if="services.length > 0" class="services-grid">
+      <Card v-for="service in services" :key="service.service_id" 
+            :id="service.service_id" 
+            :title="service.service_name" 
+            :description="service.description"
+            @click-card="goToService" />
+        </div>
   </div>
 </template>
 
 <script>
 import Table from "@/components/Table.vue";
 import api from "@/api";
+import Card from '@/components/Card.vue';
 
 export default {
-  components: { Table },
+  components: { Table, Card },
   data() {
     return {
       professionals: [],
       customers: [],
       serviceRequests: [],
+      services: [],
       loading: false,
       error: null,
       professionalColumns: [
@@ -113,15 +130,13 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get("/customer");
-        console.log("Fetched Customer Data:", response.data); // Debugging step
+        const response = await api.get("/customer"); // Debugging step
 
         this.customers = response.data.map(customer => ({
           customer_id: customer.customer_id,
           name: customer.user?.name || "N/A",
           email: customer.user?.email || "N/A",
           service: customer.service?.service_name || "N/A",
-          experience: customer.experience,
           status: customer.status
         }));
       } catch (err) {
@@ -138,15 +153,18 @@ export default {
         const response = await api.get("/service-request");
         console.log("Fetched Service Request Data:", response.data); // Debugging step
 
+        const usersResponse = await api.get("/user"); // Get response object
+        const users = usersResponse.data; // Extract actual user data
+
         this.serviceRequests = response.data.map(serviceRequest => ({
-          request_id : serviceRequest.request_id,
-package_name : serviceRequest.packages.package_name,
-customer_name : this.customers.filter(customer => customer.customer_id === serviceRequest.customer_id)[0].name,
-professional_name : this.professionals.filter(professional => professional.professional_id === serviceRequest.professional_id)[0].name,
-request_date : serviceRequest.request_date,
-complete_date : serviceRequest.complete_date,
-service_status : serviceRequest.service_status,
-service_rating : serviceRequest.service_rating,
+          request_id: serviceRequest.request_id,
+          package_name: serviceRequest.packages.package_name,
+          customer_name: users.find(user => user.user_id === serviceRequest.customer_id).name,
+          professional_name: users.find(user => user.user_id === serviceRequest.professional_id).name,
+          request_date: serviceRequest.request_date,
+          complete_date: serviceRequest.complete_date,
+          service_status: serviceRequest.service_status,
+          service_rating: serviceRequest.service_rating,
         }));
       } catch (err) {
         this.error = "Failed to load service requests";
@@ -208,16 +226,55 @@ service_rating : serviceRequest.service_rating,
       } catch (error) {
         console.error("Failed to unblock customer", error);
       }
-    }
+    },
+    async fetchServices() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get("/service");
+        console.log("Fetched Professional Data:", response.data); // Debugging step
+        this.services = response.data;
+      } catch (err) {
+        this.error = "Failed to load professionals";
+        console.error(err);
+      } finally {
+        this.loading = false;
+      }
+    },
+    goToService(id) {
+      this.$router.push({ name: "Service", params: { id } });
+    },
   },
   mounted() {
     this.fetchProfessionals();
     this.fetchCustomers();
     this.fetchServiceRequests();
+    this.fetchServices();
   }
 };
 </script>
 
 <style scoped>
-/* Add styles if needed */
+/* Container Styling */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Title Styling */
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Grid Layout */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+  gap: 20px;
+  justify-content: center;
+}
 </style>

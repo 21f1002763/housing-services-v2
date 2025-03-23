@@ -9,7 +9,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     login(userData) {
       this.token = userData.token;
-      this.role = userData.role;
+      this.userRole = userData.role;
       this.userId = userData.userId;
 
       localStorage.setItem('token', userData.token);
@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
     },
     logout() {
       this.token = null;
-      this.role = null;
+      this.userRole = null;
       this.userId = null;
 
       localStorage.removeItem('token');

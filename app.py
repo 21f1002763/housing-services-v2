@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for, Response, jsonify
+from flask import Flask, render_template, redirect, request, url_for, Response, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum, func, or_
 from datetime import date
@@ -6,9 +6,14 @@ from random import randint, choice
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_mail import Mail
 from resources import *
 from models import *
 import os
+from celery_worker import celery
+from tasks import export_closed_service_requests
+from extensions import mail
+
 
 # Initialize Flask app and extensions
 app = Flask(__name__)
@@ -19,16 +24,34 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'fallback_secret') # Replace with a secure key
 app.config['debug'] = True
 
+# Celery Configuration
+app.config['broker_url'] = 'redis://localhost:6379/0'
+app.config['result_backend'] = 'redis://localhost:6379/0'
+
+# Mail Configuration
+app.config["MAIL_SERVER"] = "smtp.gmail.com"  # Use your email provider
+app.config["MAIL_PORT"] = 587  # Usually 587 for TLS, 465 for SSL
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_USERNAME"] = "ayra.dummy@gmail.com"  # Replace with your email
+app.config["MAIL_PASSWORD"] = "uope jwdz vbiq lrzg"  # Use App Password for Gmail
+app.config["MAIL_DEFAULT_SENDER"] = "ayra.dummy@gmail.com"
+
+mail.init_app(app)
+
 db.init_app(app)
 jwt = JWTManager(app)
 api = Api(app)
+
+# Import Celery after app creation
+celery.conf.update(app.config)
 
 # Add resources
 api.add_resource(LoginResource, '/api/login')
 api.add_resource(RoleBasedResource, '/api/role-based/<string:role_name>')
 api.add_resource(UserResource, '/api/user')
 api.add_resource(ProfessionalResource, '/api/professional')
-api.add_resource(ServiceResource, '/api/service')
+api.add_resource(ServiceResource, "/api/service", "/api/service/<int:id>")
 api.add_resource(ServicePackageResource, '/api/service-package')
 api.add_resource(CustomerResource, '/api/customer')
 api.add_resource(ServiceRequestResource, '/api/service-request')
@@ -38,7 +61,12 @@ api.add_resource(BlockProfessionalResource, "/api/professional/<int:professional
 api.add_resource(UnblockProfessionalResource, "/api/professional/<int:professional_id>/unblock")
 api.add_resource(BlockCustomerResource, "/api/customer/<int:customer_id>/block")
 api.add_resource(UnblockCustomerResource, "/api/customer/<int:customer_id>/unblock")
+# api.add_resource(ExportReportResource, "/api/admin/export_report")
 
+# Handle expired tokens
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({"error": "Token has expired", "status": 401}), 401
 
 #add dummy data
 def insert_dummy_data():
@@ -52,7 +80,7 @@ def insert_dummy_data():
         
         # Insert Admin
         admin = User(role_id=admin_role.role_id, username='admin', password=generate_password_hash('adminPassword', method='pbkdf2:sha256', salt_length=16), 
-                     email='admin@example.com', name='Admin User', mobile_no=1234567890)
+                     email='aryachvn2002@gmail.com', name='Admin User', mobile_no=1234567890)
         
         # Insert Customer
         customers = [

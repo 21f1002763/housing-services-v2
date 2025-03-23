@@ -9,6 +9,7 @@ import AdminDashboard from '@/views/admin/Dashboard.vue';
 import AdminSearch from '@/views/admin/Search.vue';
 import AdminSummary from '@/views/admin/Summary.vue';
 import AdminProfile from '@/views/admin/Profile.vue';
+import Service from '@/views/admin/Service.vue';
 
 // Professional Views
 import ProfessionalLayout from '@/views/professional/Layout.vue';
@@ -33,6 +34,7 @@ const routes = [
     meta: { requiresRole: 'admin' },
     children: [
       { path: 'dashboard', component: AdminDashboard },
+      { path: 'service/:id', name: 'Service', component: Service },
       { path: 'search', component: AdminSearch },
       { path: 'summary', component: AdminSummary },
       { path: 'profile', component: AdminProfile },

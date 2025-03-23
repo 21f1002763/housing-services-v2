@@ -33,7 +33,6 @@ class BaseModel(db.Model):
                     result[relationship.key] = [obj.to_dict() for obj in related_obj]
                 else:
                     result[relationship.key] = related_obj.to_dict()
-
         return result
 
 
