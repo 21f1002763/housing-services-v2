@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Admin Dashboard</h1>
+    <h1 style="color: black;">Admin Dashboard</h1>
     <h3 class="mt-3">Service Professionals</h3>
     <Table :columns="professionalColumns" :data="professionals">
       <template v-slot:actions="{ row }">
@@ -47,28 +47,37 @@
   </div>
 
   <div class="container">
-    <h2 class="title">Our Services</h2>
-
+    <h3 class="mt-3">Our Services</h3>
+    <!-- Add Service Button -->
+    <button class="add-service-btn" @click="showModal = true">
+      + Add Service
+    </button>
     <!-- Services Grid -->
     <div v-if="services.length > 0" class="services-grid">
-      <Card v-for="service in services" :key="service.service_id" 
+      <ServiceCard v-for="service in services" :key="service.service_id" 
             :id="service.service_id" 
             :title="service.service_name" 
             :description="service.description"
-            @click-card="goToService" />
-        </div>
+            @click-card="goToService" 
+            @delete-service="deleteService"/>
+    </div>
+
+    <!-- Add Service Modal -->
+    <AddServiceModal v-if="showModal" @close="showModal = false" @service-added="fetchServices" />
   </div>
 </template>
 
 <script>
 import Table from "@/components/Table.vue";
 import api from "@/api";
-import Card from '@/components/Card.vue';
+import ServiceCard from '@/components/ServiceCard.vue';
+import AddServiceModal from "@/components/AddServiceModal.vue";
 
 export default {
-  components: { Table, Card },
+  components: { Table, ServiceCard, AddServiceModal },
   data() {
     return {
+      showModal: false,
       professionals: [],
       customers: [],
       serviceRequests: [],
@@ -241,6 +250,14 @@ export default {
         this.loading = false;
       }
     },
+    async deleteService(serviceId) {
+      try {
+        await api.delete(`/service/${serviceId}`);
+        this.services = this.services.filter(service => service.service_id !== serviceId);
+      } catch (error) {
+        console.error("Failed to delete service:", error);
+      }
+    },
     goToService(id) {
       this.$router.push({ name: "Service", params: { id } });
     },
@@ -268,6 +285,20 @@ export default {
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 20px;
+}
+
+h3{
+  color:black;
+}
+
+.add-service-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 15px;
 }
 
 /* Grid Layout */

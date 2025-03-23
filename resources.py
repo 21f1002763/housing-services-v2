@@ -343,14 +343,14 @@ class ServiceResource(Resource):
     method_decorators = [jwt_required()] 
 
     @role_required('admin', 'customer')
-    def get(self, id=None):
-        if id is None:
+    def get(self, service_id=None):
+        if service_id is None:
             # Fetch all services
             services = Service.query.all()
             return [service.to_dict(False) for service in services], 200
         else:
             # Fetch a single service by ID
-            service = Service.query.get(id)
+            service = Service.query.get(service_id)
             if not service:
                 return {"message": "Service not found"}, 404
             return service.to_dict(False), 200
@@ -365,7 +365,7 @@ class ServiceResource(Resource):
             description = args['description']
 
         services = Service.query.filter(Service.service_name == service_name)
-        if not services:
+        if services.count() == 0:
             db.session.add(Service(
                 service_name=service_name, 
                 time_required=time_required, 
@@ -399,9 +399,18 @@ class ServiceResource(Resource):
 
     @role_required('admin')
     def delete(self, service_id):
-        Service.query.delete(service_id)
-        db.session.commit()
-        return {"message": "Service deleted successfully"}, 204
+        try:
+            service = Service.query.get(service_id)
+            if not service:
+                return {"message": "Service not found"}, 404
+            
+            db.session.delete(service)
+            db.session.commit()
+            return {"message": "Service deleted successfully"}, 204
+        except Exception as e:
+            db.session.rollback()  # Rollback in case of failure
+            return {"message": "Service is not deleted", "error": str(e)}, 500
+        
 
 class ServicePackageResource(Resource):
     method_decorators = [jwt_required()] 
