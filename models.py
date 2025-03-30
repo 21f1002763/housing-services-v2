@@ -33,7 +33,6 @@ class BaseModel(db.Model):
                     result[relationship.key] = [obj.to_dict() for obj in related_obj]
                 else:
                     result[relationship.key] = related_obj.to_dict()
-
         return result
 
 
@@ -49,11 +48,6 @@ class User(BaseModel):
     role_id = db.Column(db.Integer, db.ForeignKey('role.role_id'))
     username = db.Column(db.String, nullable = False, unique = True)
     password = db.Column(db.String, nullable = False)
-    email = db.Column(db.String, nullable = False, unique = True)
-    name = db.Column(db.String, nullable = False)
-    mobile_no = db.Column(db.Integer, nullable = False)
-    address = db.Column(db.String , nullable = True)
-    pincode = db.Column(db.Integer, nullable = True)
     user_roles = db.relationship("Role", backref = "user")
 
 class Service_Professional(BaseModel):
@@ -61,19 +55,33 @@ class Service_Professional(BaseModel):
     professional_id = db.Column(db.Integer, primary_key = True, autoincrement = True, nullable = False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     service_id = db.Column(db.Integer, db.ForeignKey('service.service_id'))
+    email = db.Column(db.String, nullable = False, unique = True)
+    name = db.Column(db.String, nullable = False)
+    mobile_no = db.Column(db.Integer, nullable = False)
+    address = db.Column(db.String , nullable = True)
+    city_id = db.Column(db.Integer, db.ForeignKey('city.city_id'), nullable = False)
+    pincode = db.Column(db.Integer, nullable = True)
     experience = db.Column(db.Integer, nullable = False)
     id_pdf = db.Column(db.LargeBinary, nullable=True)
     status = db.Column(Enum('accepted', 'rejected', 'requested', 'blocked',  name='professional_status_enum'), nullable=False, default='requested')
     service = db.relationship("Service", backref = "service_professional")
     user = db.relationship("User", backref="service_professional")
     service = db.relationship("Service", backref="service_professionals")
+    city = db.relationship("City", backref = "service_professional")
 
 class Customer(BaseModel):
     __tablename__ = 'customer'
     customer_id = db.Column(db.Integer, primary_key = True, autoincrement = True, nullable = False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
-    status = db.Column(Enum('blocked', 'unblocked',  name='customer_status_enum'), nullable=False, default='requested')
+    email = db.Column(db.String, nullable = False, unique = True)
+    name = db.Column(db.String, nullable = False)
+    mobile_no = db.Column(db.Integer, nullable = False)
+    address = db.Column(db.String , nullable = True)
+    city_id = db.Column(db.Integer, db.ForeignKey('city.city_id'), nullable = False)
+    pincode = db.Column(db.Integer, nullable = True)
+    status = db.Column(Enum('blocked', 'active',  name='customer_status_enum'), nullable=False, default='requested')
     user = db.relationship("User", backref = "customer")
+    city = db.relationship("City", backref = "customer")
 
 class Service(BaseModel):
     __tablename__ = 'service'
@@ -105,3 +113,8 @@ class Service_Request(BaseModel):
     packages = db.relationship("Service_Package", backref="service_reqeust")
     customers = db.relationship("Customer", backref="service_reqeust")
     professionals = db.relationship("Service_Professional", backref="service_reqeust")
+
+class City(BaseModel):
+    __tablename__ = 'city'
+    city_id = db.Column(db.Integer, primary_key = True, autoincrement = True, nullable = False)
+    city_name = db.Column(db.String, nullable = False, unique = True)
