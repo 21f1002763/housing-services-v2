@@ -13,9 +13,9 @@
 
       <nav>
         <ul>
-          <li><router-link to="/admin/dashboard" active-class="active-link">Dashboard</router-link></li>
-          <li><router-link to="/admin/search" active-class="active-link">Search</router-link></li>
-          <li><router-link to="/admin/summary" active-class="active-link">Summary</router-link></li>
+          <li><router-link :to="adminRoutes.dashboard" active-class="active-link">Dashboard</router-link></li>
+          <li><router-link :to="adminRoutes.search" active-class="active-link">Search</router-link></li>
+          <li><router-link :to="'/'" active-class="active-link">Logout</router-link></li>
         </ul>
       </nav>
     </aside>
@@ -28,8 +28,20 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/store/auth';
 export default {
   name: "AdminLayout",
+  computed: {
+    userId() {
+      return useAuthStore().userId;
+    },
+    adminRoutes() {
+      return {
+        dashboard: `/admin/${this.userId}/dashboard`,
+        search: `/admin/${this.userId}/search`,
+      }
+    }
+  },
 };
 </script>
 

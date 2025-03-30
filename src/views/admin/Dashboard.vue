@@ -54,17 +54,18 @@
     </button>
     <!-- Services Grid -->
     <div v-if="services.length > 0" class="services-grid">
-      <ServiceCard v-for="service in services" :key="service.service_id" 
-            :id="service.service_id" 
-            :title="service.service_name" 
-            :description="service.description"
-            @click-card="goToService" 
-            @delete-service="deleteService"/>
+      <ServiceCard v-for="service in services" :key="service.service_id" :id="service.service_id"
+        :title="service.service_name" :description="service.description" :time_required="service.time_required"
+        :hideDelete="false" @click-card="goToService" @delete-service="deleteService" />
     </div>
 
     <!-- Add Service Modal -->
     <AddServiceModal v-if="showModal" @close="showModal = false" @service-added="fetchServices" />
   </div>
+
+  <button class="add-service-btn" @click="exportCsv()">
+    Export Data
+  </button>
 </template>
 
 <script>
@@ -88,6 +89,7 @@ export default {
         { key: "professional_id", label: "ID" },
         { key: "name", label: "Name" },
         { key: "email", label: "Email" },
+        { key: "city", label: "City" },
         { key: "service", label: "Service" },
         { key: "experience", label: "Experience (Years)" },
         { key: "status", label: "Status" },
@@ -97,6 +99,7 @@ export default {
         { key: "customer_id", label: "ID" },
         { key: "name", label: "Name" },
         { key: "email", label: "Email" },
+        { key: "city", label: "City" },
         { key: "status", label: "Status" },
         { key: "actions", label: "Actions" }
       ],
@@ -122,9 +125,10 @@ export default {
 
         this.professionals = response.data.map(professional => ({
           professional_id: professional.professional_id,
-          name: professional.user?.name || "N/A",
-          email: professional.user?.email || "N/A",
-          service: professional.service?.service_name || "N/A",
+          name: professional.name || "N/A",
+          email: professional.email || "N/A",
+          city: professional.city.city_name || "N/A",
+          service: professional.service.service_name || "N/A",
           experience: professional.experience,
           status: professional.status
         }));
@@ -143,8 +147,9 @@ export default {
 
         this.customers = response.data.map(customer => ({
           customer_id: customer.customer_id,
-          name: customer.user?.name || "N/A",
-          email: customer.user?.email || "N/A",
+          name: customer.name || "N/A",
+          email: customer.email || "N/A",
+          city: customer.city.city_name || "N/A",
           service: customer.service?.service_name || "N/A",
           status: customer.status
         }));
@@ -168,8 +173,8 @@ export default {
         this.serviceRequests = response.data.map(serviceRequest => ({
           request_id: serviceRequest.request_id,
           package_name: serviceRequest.packages.package_name,
-          customer_name: users.find(user => user.user_id === serviceRequest.customer_id).name,
-          professional_name: users.find(user => user.user_id === serviceRequest.professional_id).name,
+          customer_name: serviceRequest.customers.name,
+          professional_name: serviceRequest.professionals.name,
           request_date: serviceRequest.request_date,
           complete_date: serviceRequest.complete_date,
           service_status: serviceRequest.service_status,
@@ -261,6 +266,29 @@ export default {
     goToService(id) {
       this.$router.push({ name: "Service", params: { id } });
     },
+    async exportCsv() {
+      try {
+        // Start the CSV export
+        await api.post('/export-csv');
+
+        // Wait a few seconds for the file to be generated
+        setTimeout(async () => {
+          // Download the file
+          const response = await api.get('/download-csv', { responseType: 'blob' });
+
+          // Create a URL for the file and trigger download
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'closed_service_requests.csv');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }, 10000); // Adjust the delay based on how long the task takes
+      } catch (error) {
+        console.error('Error exporting CSV:', error);
+      }
+    }
   },
   mounted() {
     this.fetchProfessionals();
@@ -287,8 +315,8 @@ export default {
   margin-bottom: 20px;
 }
 
-h3{
-  color:black;
+h3 {
+  color: black;
 }
 
 .add-service-btn {
@@ -303,9 +331,11 @@ h3{
 
 /* Grid Layout */
 .services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 20px;
+  max-width: 100%;
+  margin: 0 auto;
 }
 </style>

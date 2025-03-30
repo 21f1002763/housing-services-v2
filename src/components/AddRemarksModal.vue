@@ -1,14 +1,12 @@
 <template>
   <div class="modal-overlay">
     <div class="modal">
-      <h2>Add Service</h2>
+      <h2>Add Package</h2>
 
-      <input v-model="serviceName" type="text" placeholder="Service Name" />
-      <textarea v-model="description" placeholder="Description"></textarea>
-      <input v-model="timeRequired" type="number" min="1" max="100" placeholder="Time Required (in Days)" />
+      <input v-model="remarks" type="text" placeholder="Remarks (if any)" />
 
       <div class="button-group">
-        <button @click="addService">Add</button>
+        <button @click="editRequest">Save</button>
         <button @click="$emit('close')">Cancel</button>
       </div>
     </div>
@@ -19,25 +17,27 @@
 import api from "@/api";
 
 export default {
+  props: {
+    requestId: Number,
+  },
   data() {
     return {
-      serviceName: "",
-      description: "",
+      remarks: "",
+      rating: null,
+
     };
   },
   methods: {
-    async addService() {
-      if (!this.serviceName.trim() || !this.description.trim()) return;
+    async editRequest() {
       try {
-        await api.post("/service", {
-          service_name: this.serviceName,
-          description: this.description,
-          time_required: this.timeRequired,
+        await api.put(`/service-request/${this.requestId}`, {
+          remarks: this.remarks,
         });
-        this.$emit("service-added");
+        this.$emit("service-request-edited");
         this.$emit("close");
+        window.location.reload();
       } catch (error) {
-        console.error("Failed to add service:", error);
+        console.error("Failed to edit service request", error);
       }
     },
   },
@@ -52,7 +52,8 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Dim background */
+  background: rgba(0, 0, 0, 0.5);
+  /* Dim background */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,7 +68,7 @@ export default {
   height: fit-content;
   max-width: 90%;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  
+
   /* Centering */
   position: fixed;
   top: 50%;
@@ -80,7 +81,8 @@ export default {
   /* Fix stacking issue */
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Space between elements */
+  gap: 15px;
+  /* Space between elements */
 }
 
 /* Heading */
@@ -89,14 +91,16 @@ h2 {
 }
 
 /* Input and Textarea */
-input, textarea {
+input,
+textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
   box-sizing: border-box;
-  display: block; /* Ensures block-level behavior */
+  display: block;
+  /* Ensures block-level behavior */
 }
 
 /* Textarea Adjustments */

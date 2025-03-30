@@ -1,14 +1,14 @@
 <template>
   <div class="card" @click="$emit('click-card', id)">
     <!-- Delete Icon (Bootstrap Icons) -->
-    <button v-if="!hideDelete" class="delete-btn" @click.stop="confirmDelete">
+    <button class="delete-btn" @click.stop="confirmDelete">
       <i class="bi bi-trash"></i>
     </button>
 
     <div class="card-content">
       <h3 class="card-title">{{ title }}</h3>
       <p class="card-description">{{ description }}</p>
-      <p class="card-description">Time Required: {{ time_required }} Days</p>
+      <p class="card-description">Cost: {{ cost }} Rupees</p>
     </div>
   </div>
 </template>
@@ -19,13 +19,12 @@ export default {
     id: Number,
     title: String,
     description: String,
-    time_required: String,
-    hideDelete: Boolean
+    cost: String
   },
   methods: {
     confirmDelete() {
-      if (confirm("Are you sure you want to delete this service?")) {
-        this.$emit("delete-service", this.id);
+      if (confirm("Are you sure you want to delete this package?")) {
+        this.$emit("delete-package", this.id);
       }
     }
   }
