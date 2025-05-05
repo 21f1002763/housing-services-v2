@@ -3,7 +3,8 @@ import { useAuthStore } from "@/store/auth";
 import router from "@/router";
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:5000/api",
+  baseURL: "https://studious-tribble-wprp65v6749h9p54-5000.app.github.dev/api/",
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {

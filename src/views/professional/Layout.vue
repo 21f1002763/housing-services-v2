@@ -14,8 +14,7 @@
       <nav>
         <ul>
           <li><router-link :to="professionalRoutes.dashboard" active-class="active-link">Dashboard</router-link></li>
-          <li><router-link :to="'/'" active-class="active-link" @click.native="logout">Logout</router-link></li>
-          <li><router-link :to="'/'" active-class="active-link">Logout</router-link></li>
+          <li><router-link to="/" @click="logout" active-class="active-link">Logout</router-link></li>
         </ul>
       </nav>
     </aside>
@@ -39,7 +38,12 @@ export default {
       return {
         dashboard: `/professional/${this.userId}/dashboard`
       }
+    },
+  methods: {
+    logout() {
+      useAuthStore().logout();
     }
+  }
   }
 };
 </script>

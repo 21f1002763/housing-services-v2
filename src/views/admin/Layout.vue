@@ -4,9 +4,9 @@
     <aside class="sidebar">
       <div class="icon-container">
         <router-link to="/admin/profile">
-        <div class="icon d-flex align-items-center justify-content-center">
-          <span class="fa fa-user"></span>
-        </div>
+          <div class="icon d-flex align-items-center justify-content-center">
+            <span class="fa fa-user"></span>
+          </div>
         </router-link>
         <h2>Admin Panel</h2>
       </div>
@@ -15,7 +15,7 @@
         <ul>
           <li><router-link :to="adminRoutes.dashboard" active-class="active-link">Dashboard</router-link></li>
           <li><router-link :to="adminRoutes.search" active-class="active-link">Search</router-link></li>
-          <li><router-link :to="'/'" active-class="active-link">Logout</router-link></li>
+          <li><router-link to="/" @click="logout" active-class="active-link">Logout</router-link></li>
         </ul>
       </nav>
     </aside>
@@ -42,6 +42,11 @@ export default {
       }
     }
   },
+  methods: {
+    logout() {
+      useAuthStore().logout();
+    }
+  }
 };
 </script>
 
@@ -109,7 +114,8 @@ export default {
 
 .icon-container {
   display: flex;
-  align-items: center; /* Align icon and text vertically */
+  align-items: center;
+  /* Align icon and text vertically */
 }
 
 .icon {
@@ -120,11 +126,11 @@ export default {
   border-radius: 30px;
   display: flex;
   align-items: center;
-  justify-content: center; /* Space between icon and heading */
+  justify-content: center;
+  /* Space between icon and heading */
 }
 
 .icon span {
   color: #483434;
 }
-
 </style>

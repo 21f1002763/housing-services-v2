@@ -15,7 +15,7 @@
         <ul>
           <li><router-link :to="customerRoutes.dashboard" active-class="active-link">Dashboard</router-link></li>
           <li><router-link :to="customerRoutes.search" active-class="active-link">Search</router-link></li>
-          <li><router-link :to="'/'" active-class="active-link">Logout</router-link></li>
+          <li><router-link to="/" @click="logout" active-class="active-link">Logout</router-link></li>
         </ul>
       </nav>
     </aside>
@@ -40,6 +40,11 @@ export default {
         dashboard: `/customer/${this.userId}/dashboard`,
         search: `/customer/${this.userId}/search`,
       }
+    }
+  },
+  methods: {
+    logout() {
+      useAuthStore().logout();
     }
   }
 };

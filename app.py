@@ -22,7 +22,12 @@ from datetime import datetime, timedelta
 
 # Initialize Flask app and extensions
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*", "supports_credentials": True}})
+CORS(app,
+     origins=[
+         "https://localhost:8080",
+         "https://studious-tribble-wprp65v6749h9p54-8080.app.github.dev"
+     ],
+     supports_credentials=True)
 app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///HousingServiceDB.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -277,4 +282,4 @@ if __name__ == '__main__':
         db.create_all()
         insert_dummy_data()
     print("App running")
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
