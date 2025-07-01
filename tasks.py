@@ -8,7 +8,7 @@ import requests
 from datetime import datetime, timedelta
 
 # Google Chat Webhook URL
-GOOGLE_CHAT_WEBHOOK_URL = "https://chat.googleapis.com/v1/spaces/AAAAQRoxTy4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=LVCxdmIOf_B6Qfw0VPzO8tWTOqWhnygK-pF50FTBScs"
+GOOGLE_CHAT_WEBHOOK_URL = "https://chat.googleapis.com/v1/spaces/"  #Paste the gspace webhook link here
 
 # @celery.task
 # def daily_reminder_job():
