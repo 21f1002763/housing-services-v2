@@ -43,9 +43,9 @@ app.config["MAIL_SERVER"] = "smtp.gmail.com"  # Use your email provider
 app.config["MAIL_PORT"] = 587  # Usually 587 for TLS, 465 for SSL
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
-app.config["MAIL_USERNAME"] = "ayra.dummy@gmail.com"  # Replace with your email
-app.config["MAIL_PASSWORD"] = "uope jwdz vbiq lrzg"  # Use App Password for Gmail
-app.config["MAIL_DEFAULT_SENDER"] = "ayra.dummy@gmail.com"
+app.config["MAIL_USERNAME"] = "abc@gmail.com"  # Replace with your email
+app.config["MAIL_PASSWORD"] = "xxxx xxxx xxxx xxxx"  # Use App Password for Gmail
+app.config["MAIL_DEFAULT_SENDER"] = "abc@gmail.com" #Replace with the mail you want as a sender
 
 mail = Mail(app)
 mail.init_app(app)
